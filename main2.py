@@ -1,79 +1,76 @@
-def strf2(lamService, lamArrival):
-  readyqueue= Queue()
-  eventqueue = PriorityQueue()
-  finishedProcesses= Queue()
-  processDone=0
-  clockTime=0
-  id=0
-  cpu=0
-  # first event 
-  event1= event(1, clockTime, process(lamService,clockTime,id))
-  id+=1
-  print(event1.time)
-  eventqueue.put(event1)
-  while (processDone != 10000):
-    curentEvent = eventqueue.get()
-    clockTime=curentEvent.time
 
-    if (curentEvent.type==1):
-      arivalTime = clockTime+genxp(lamArrival)
-      nextEvent= event(1, arivalTime, process(lamService,arivalTime,id))
-      eventqueue.put(nextEvent)
-      id+=1
-      
-      if(cpu==0): # cpu not working 
-        curentEvent.type=2
-        curentEvent.time=curentEvent.process.timeRemaining + clockTime
-        curentEvent.process.startProcess= clockTime
-        cpu = 1
-      if (cpu==1): # cpu working 
-        # get depart 
-        events=Queue()
-        nextDepart = curentEvent
-        eventqueue.put(curentEvent) # will this fix it lol  
 
-        #for ev in range(eventqueue.qsize):
-        while not readyqueue.empty():
-          evt = eventqueue.get()
-          if (evt.type==2):
-            nextDepart=evt
-          else:
-            events.put(evt)
-            print(nextDepart.type)
-        while not events.empty():
-          evt =events.get()
-          eventqueue.put(evt)
-            
-          
 
-       
-        nextDepart.process.timeRemaining = clockTime -  nextDepart.process.startProcess # how long is left 
-        readyqueue.put(nextDepart)
-        
-        #sorted(readyqueue,  cmp=compareSTRF)### this is a fucking prob 
-        depart=readyqueue.get() # set next depart 
-        depart.type=2
-        depart.time=depart.process.timeRemaining + clockTime
-        depart.process.startProcess= clockTime
-        # reorder event queeue 
-        
+done = False
+while (not done):
+  todo= input( 'to create file with data for simulations press: 1 \nto run a custom simulation press: 2 \nto end program enter 3\n')
+  todo =int(todo)
 
-    elif( curentEvent.type==2 ):
-        if(readyqueue.empty()):
-          cpu=0
-        else:
-          depart=readyqueue.get()
-          depart.type=2
-          depart.time=depart.process.timeRemaining + clockTime
-          depart.process.startProcess= clockTime
-          eventqueue.put(depart)
-          
-        processDone += 1
-        curentEvent.process.compleationTime=clockTime
-        finishedProcesses.put(curentEvent.process)
-        #print(processDone)
-          
-  print(clockTime)
-  genReport(finishedProcesses, clockTime)
+  if(todo == 1):
+    filename = "data.csv"
+    f = open(filename, "w+")
+    f.close()
+    f = open('data.csv', 'a')
+    writer = csv.writer(f)
+    row = ['scheduler','lamda','avgTurnAround','totalThroughPut','cpuUtil','waitTime','qt']
+    writer.writerow(row)
+    f.close()
+    for at in range(10,31):
+      fcfs(.04,at,0)
+      print('fcfs:', at)
+    for at in range(10,31):
+      hrrn(.04,at,0)
+      print('hrrn:', at)
+    for at in range(10,31):
+      strf(.04,at,0)
+      print('strf:', at)
+    for at in range(10,31):
+      print('rrStart .01', at,)
+      roundRobin(.04,at,.01,0)
+      print('rrFinish .01', at,)
+    for at in range(10,31):
+      print('rrStart .2', at,)
+      roundRobin(.04,at,.2,0)
+      print('rrFinish .2', at,)
 
-  return
+  elif(todo == 2):
+    schul = input('for FCFS enter: 1 \n for RR enter: 2 \n for STRF enter: 3 \n for HRRN enter 4\n' )
+    schul =int(schul)
+    if(schul == 1):
+      at = input('enter avg arrival time ')
+      st = input('enter searvice time')
+      at = int(at)
+      st= int(st)
+      fcfs(st,at,1)
+
+    elif(schul == 2):
+      at = input('enter avg arrival time ')
+      st = input('enter searvice time')
+      qt = input('enter quantum')
+      at = int(at)
+      st= int(st)
+      qt = int(qt)
+      roundRobin(st,at,qt,1)
+
+    
+    elif(schul == 3):
+      at = input('enter avg arrival time ')
+      st = input('enter searvice time')
+      at = int(at)
+      st= int(st)
+      strf(st,at,1)
+  
+    elif(schul == 4):
+      at = input('enter avg arrival time ')
+      st = input('enter searvice time')
+      at = int(at)
+      st= int(st)
+      hrrn(st,at,1)
+
+  elif(todo ==3):
+    done=True  
+
+  else:
+    print('could not do request please try again')
+
+    
